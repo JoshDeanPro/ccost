@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ccost — know exactly what Claude Code is costing you</title>
+<meta name="description" content="ccost reads Claude Code's local transcripts and computes your real API spend using Anthropic's published rates — including the cache tiers most calculators get wrong. No API key, no network.">
+<meta property="og:title" content="ccost — know exactly what Claude Code is costing you">
+<meta property="og:description" content="Your real Claude Code spend, computed locally from session transcripts. Zero dependencies, no API key.">
+<style>
+ :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;--acc:#d9903d;--ok:#3fb950}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+ .wrap{max-width:760px;margin:0 auto;padding:0 22px}
+ header{padding:76px 0 40px}
+ h1{font-size:2.6rem;line-height:1.15;margin:0 0 14px;letter-spacing:-.02em}
+ h2{font-size:1.35rem;margin:44px 0 12px;letter-spacing:-.01em}
+ h3{font-size:1rem;margin:26px 0 6px}
+ .sub{font-size:1.18rem;color:var(--dim);margin:0 0 28px}
+ pre{background:#010409;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#c9d1d9}
+ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em}
+ p code,li code{background:var(--panel);padding:2px 6px;border-radius:4px}
+ .btn{display:inline-block;background:var(--acc);color:#1a1206;font-weight:650;padding:13px 26px;border-radius:7px;text-decoration:none;font-size:1.05rem}
+ .btn:hover{filter:brightness(1.08)}
+ .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);font-weight:500}
+ .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:26px 0}
+ .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;margin:22px 0}
+ .price{font-size:2.1rem;font-weight:680;letter-spacing:-.02em}
+ .price small{font-size:.95rem;color:var(--dim);font-weight:400}
+ ul{padding-left:20px}li{margin:5px 0}
+ .dim{color:var(--dim)}
+ .ok{color:var(--ok)}
+ table{border-collapse:collapse;width:100%;font-size:.93rem;margin:14px 0}
+ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+ th{color:var(--dim);font-weight:500}
+ footer{margin:70px 0 50px;padding-top:22px;border-top:1px solid var(--line);color:var(--dim);font-size:.9rem}
+ a{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Know exactly what Claude&nbsp;Code is costing you.</h1>
+  <p class="sub">Claude Code records every API response to your disk — but never tells you what it cost.
+  <strong>ccost</strong> reads those transcripts and computes your real spend from Anthropic's published rates.</p>
+  <div class="row">
+    <a class="btn" href="#pro">Get ccost pro — $29</a>
+    <a class="btn ghost" href="https://github.com/JoshDeanPro/ccost">Free version on GitHub</a>
+  </div>
+  <p class="dim" style="font-size:.92rem">Python 3.9+ · zero dependencies · no API key · nothing leaves your machine</p>
+</header>
+
+<pre>  TOTAL SPEND   $6.12   across 69 responses
+  ~$6.12/day over 1 day(s)  →  $183.60/month at this rate
+
+  TOKENS
+    cache read      3.8M  ██████████████████████··  92.2%
+    cache write   265.5K  ██······················   6.4%
+    output         61.6K  ························   1.5%
+    fresh input      138  ························   0.0%
+
+  PROMPT CACHE
+    Caching saved you $15.98 vs. running uncached
+    Hit ratio 93.5%   reads 3.8M / writes 265.5K
+    14.48 reads per write written — above the 2-read break-even</pre>
+
+<h2>Napkin math gets this wrong three ways</h2>
+
+<h3>1. Cache tokens are not input tokens</h3>
+<p>A 5-minute cache write costs <strong>1.25×</strong> base input. A 1-hour write costs <strong>2×</strong>.
+A cache read costs <strong>0.1×</strong>. Claude Code uses all three — and on real sessions cache traffic is
+routinely <strong>over 90% of total token volume</strong>. Price it as plain input and you can be out by an
+order of magnitude, in either direction.</p>
+
+<h3>2. The transcripts repeat themselves</h3>
+<p>The same API response is written to the JSONL log several times. On measured data that is
+roughly <strong>70% duplicate rows</strong>. Add up every line and you inflate your own bill.
+ccost de-duplicates on the response id.</p>
+
+<h3>3. Some charges aren't tokens</h3>
+<p>Web search bills <code>$10 per 1,000 searches</code> on top of tokens. Fast mode reprices Opus 5 at
+<code>$10/$50</code>. <code>inference_geo:&nbsp;"us"</code> puts a <code>1.1×</code> multiplier on everything.</p>
+
+<h2>The cache break-even test</h2>
+<p>A 1-hour cache write costs 2× base input; a read costs 0.1×. Writing once and reading it
+<code>N</code> times costs <code>2 + 0.1N</code>, versus <code>N + 1</code> uncached. Caching only wins once
+<code>N ≥ 2</code>.</p>
+<p>If your reads-per-write ratio sits below that line, <strong>prompt caching is actively costing you
+money</strong> — and nothing in your tooling will say so. ccost computes the counterfactual directly:
+what you actually paid, against what the identical traffic would have cost with caching off.</p>
+
+<div class="card" id="pro">
+  <div class="price">$29 <small>one time · no subscription</small></div>
+  <p style="margin:12px 0 6px"><strong>ccost pro</strong> — everything in the free tool, plus:</p>
+  <ul>
+    <li>Per-session and per-project cost attribution</li>
+    <li>Daily spend trend</li>
+    <li>Per-session cache break-even — find where caching lost you money</li>
+    <li>A ranked, dollar-quantified savings report</li>
+    <li>Full JSON export</li>
+  </ul>
+  <div class="row"><a class="btn" href="BUY_URL">Buy ccost pro — $29</a></div>
+  <p class="dim" style="font-size:.9rem;margin:0">Instant license key by email. Works offline forever.
+  <span class="ok">30-day refund, no questions.</span></p>
+</div>
+
+<h2>What it does not do</h2>
+<table>
+  <tr><th>Sends your code anywhere</th><td class="dim">No. It reads local files and prints to your terminal.</td></tr>
+  <tr><th>Needs an API key</th><td class="dim">No. It never makes a network call.</td></tr>
+  <tr><th>Needs dependencies</th><td class="dim">No. Python 3.9+ standard library only.</td></tr>
+  <tr><th>Covers Claude.ai chat usage</th><td class="dim">No — Claude Code sessions only.</td></tr>
+</table>
+
+<h2>Accuracy</h2>
+<p>Rates come from Anthropic's published pricing page. The cost engine is verified against an
+independent reimplementation, agreeing to <code>$0.000000001</code> on real transcript data.
+Find a discrepancy and I want the bug report — that's the entire point of the tool.</p>
+
+<pre>$ curl -O https://raw.githubusercontent.com/JoshDeanPro/ccost/main/ccost.py
+$ python3 ccost.py</pre>
+
+<footer>
+  ccost · <a href="https://github.com/JoshDeanPro/ccost">source on GitHub</a> ·
+  MIT for the free tier<br>
+  Not affiliated with Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.
+</footer>
+
+</div>
+</body>
+</html>
