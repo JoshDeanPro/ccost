@@ -77,7 +77,7 @@ The free tool gives you totals, token mix, cache health, and per-model cost.
 
 One-time purchase, no subscription, works offline forever.
 
-→ **https://joshdeanpro.github.io/ccost/**
+→ **Buy: https://buy.stripe.com/3cI3cudfufOs2K2cqi48000**  ·  details: https://joshdeanpro.github.io/ccost/
 
 ```sh
 ccost activate CCOST-XXXXX-XXXXX-XXXXX-XX
