@@ -1,5 +1,11 @@
 # ccost
 
+> **Retired 2026-08-31.** This project is archived and no longer maintained.
+> The paid tier is discontinued and its checkout link is deactivated.
+> [`ccusage`](https://github.com/ryoppippi/ccusage) is free, actively maintained,
+> and covers this ground better. The cost engine here was independently
+> cross-checked and is accurate; it just has no reason to be a product.
+
 **Know exactly what Claude Code is costing you.**
 
 Claude Code writes a full record of every API response to your machine — but nothing
